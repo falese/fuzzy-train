@@ -19,10 +19,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              '@babel/preset-env',
-              ['@babel/preset-react', { "runtime": "automatic" }]
-            ],
+            presets: ['@babel/preset-env', ['@babel/preset-react', { "runtime": "automatic" }]],
           },
         },
       },
@@ -36,31 +33,33 @@ module.exports = {
         './App': './src/App',
       },
       shared: {
-        react: { 
-          singleton: true, 
-          requiredVersion: '^18.2.0',
-          eager: true
-        },
-        'react-dom': { 
-          singleton: true, 
-          requiredVersion: '^18.2.0',
-          eager: true
-        },
         '@mui/material': { 
           singleton: false,
-          eager: true
+          requiredVersion: '5.14.7',
+          eager: false
         },
-        '@mui/system': {
+        '@mui/system': { 
           singleton: false,
-          eager: true
+          requiredVersion: '5.14.7',
+          eager: false
         },
         '@emotion/react': { 
           singleton: true,
-          eager: true
+          eager: false
         },
         '@emotion/styled': { 
           singleton: true,
-          eager: true
+          eager: false
+        },
+        'react': { 
+          singleton: true,
+          requiredVersion: '^18.2.0',
+          eager: false
+        },
+        'react-dom': { 
+          singleton: true,
+          requiredVersion: '^18.2.0',
+          eager: false
         }
       },
     }),

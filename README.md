@@ -1,170 +1,238 @@
-# Nginx Cache Test Harness
+# Module Federation with MUI Version Testing
 
-This test harness helps evaluate Nginx caching behavior for module federation components. It provides a containerized environment to test various caching scenarios and validate cache configuration settings.
+This project demonstrates microfrontend architecture using Module Federation, with a focus on testing different versions of Material UI (MUI) across multiple microfrontends with dependency monitoring.
+
+## Features
+
+- Module Federation with host-first shared dependencies
+- Multiple MUI versions running simultaneously
+- Dependency source monitoring
+- Performance tracking
+- Nginx caching configuration
 
 ## Prerequisites
 
-- Docker (20.10.0 or higher)
-- Docker Compose (2.0.0 or higher)
-- Bash shell
-- Git (for version control)
+- Node.js (v14 or higher)
+- Docker
+- Docker Compose
+- Git
 
 ## Directory Structure
 
 ```
 test-harness/
-├── apps/              # Component libraries
-│   ├── lib1.js
-│   └── lib2.js
-├── nginx/            # Nginx configuration
-│   └── nginx.conf
-├── tests/            # Test scripts
-│   └── test_caching.sh
-├── results/          # Test results output
-├── docker-compose.yml
-└── README.md
+├── container/          # Container application
+├── mfe1/              # Microfrontend 1 (MUI v5.13.7)
+├── mfe2/              # Microfrontend 2 (MUI v5.14.7)
+├── mfe3/              # Microfrontend 3 (MUI v5.15.1)
+├── nginx/             # Nginx configuration
+├── shared-lib/        # Shared dependencies
+└── docker-compose.yml
 ```
 
-## Quick Start
+## Initial Setup
 
-1. Clone the repository or create a new directory:
+1. Create project directory and clone repository:
 
 ```bash
-mkdir nginx-cache-test
-cd nginx-cache-test
+mkdir my-project
+cd my-project
 ```
 
-2. Copy all the test harness files into your directory
+2. Set up the infrastructure:
 
 ```bash
-# Copy the content of the bash script provided earlier
+# Create and run setup script
 chmod +x setup.sh
 ./setup.sh
 ```
 
-3. Start the test environment:
+3. Add MUI versions and monitoring:
 
 ```bash
-docker-compose up -d
+chmod +x update-mfes.sh
+./update-mfes.sh
 ```
 
-4. Run the tests:
+4. Build and start the application:
 
 ```bash
-docker-compose run test
+cd test-harness
+./build.sh
 ```
 
-5. Check the results:
+5. Access the application:
+
+- Main application: http://localhost:8080
+- Check browser console for dependency monitoring
+
+## Cleaning Up
+
+To stop and clean up the environment:
 
 ```bash
-cat results/test_results.txt
+cd test-harness
+docker-compose down -v
+rm -rf */node_modules
+rm -rf dist
 ```
 
-## Test Scenarios
+## Making Changes
 
-The test harness validates the following scenarios:
+### Updating MFE Configurations
 
-1. Initial Cache Miss
-   - Verifies that the first request results in a cache miss
-2. Cache Hit
-   - Confirms subsequent requests are served from cache
-3. Cache Bypass
-   - Tests that cache can be bypassed when needed
-
-## Nginx Configuration
-
-The test harness uses the following key caching configurations:
-
-- Cache Zone: 10MB
-- Cache Valid Time: 60 minutes
-- Cache Levels: 1:2
-- Cache Key: `$scheme$request_method$host$request_uri`
-
-### Debug Headers
-
-The following debug headers are included in responses:
-
-- `X-Cache-Status`: Shows cache hit/miss status
-- `X-Cache-Key`: Shows the cache key used
-
-## Customization
-
-### Modifying Cache Settings
-
-Edit `nginx/nginx.conf` to adjust cache parameters:
-
-```nginx
-proxy_cache_path /tmp/nginx_cache
-    levels=1:2
-    keys_zone=my_cache:10m
-    max_size=10g
-    inactive=60m
-    use_temp_path=off;
-```
-
-### Adding Test Cases
-
-1. Open `tests/test_caching.sh`
-2. Add new test cases following the pattern:
+1. Stop the current environment:
 
 ```bash
-echo "Testing new scenario..."
-RESULT=$(curl -s -I "${BASE_URL}/libs/your-test-case" | grep "X-Cache-Status" | cut -d' ' -f2)
-run_test "Test Description" "EXPECTED_VALUE" "${RESULT}"
+cd test-harness
+docker-compose down -v
+rm -rf */node_modules
+rm -rf dist
+cd ..
 ```
+
+2. Run the update script:
+
+```bash
+./update-mfes.sh
+```
+
+3. Rebuild and start:
+
+```bash
+cd test-harness
+./build.sh
+```
+
+### Adding New MFEs
+
+1. Create new MFE directory in test-harness/
+2. Update container's webpack.config.js to include new remote
+3. Update docker-compose.yml if needed
+4. Follow the cleanup and rebuild steps above
+
+## Monitoring
+
+### Dependency Information
+
+- Check each MFE's card in the UI for:
+  - MUI version in use
+  - Dependency source (container/local)
+  - Load time metrics
+
+### Console Monitoring
+
+- Open browser DevTools
+- Check console for dependency loading information
+- Performance marks available in Performance tab
+
+### Performance Testing
+
+- Network tab shows module loading
+- Performance metrics in console
+- Loading times displayed in UI
+
+## Configuration Details
+
+### Container (Host) Configuration
+
+- Provides MUI v5.13.7 as shared dependency
+- Uses host-first configuration
+- Manages shared dependency loading
+
+### MFE Configurations
+
+- MFE1: MUI v5.13.7
+- MFE2: MUI v5.14.7
+- MFE3: MUI v5.15.1
+- Each can fall back to local dependencies if needed
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. Port Conflicts
+1. Build Failures
 
 ```bash
-# If port 8080 is in use, modify docker-compose.yml:
-ports:
-  - "8081:8080"  # Change to any available port
+# Clean everything and rebuild
+cd test-harness
+./cleanup.sh
+cd ..
+./setup.sh
+./update-mfes.sh
+cd test-harness
+./build.sh
 ```
 
-2. Permission Issues
+2. Dependency Issues
 
 ```bash
-# If experiencing permission issues with results directory:
-chmod 777 results
+# Remove node_modules and rebuild
+cd test-harness
+rm -rf */node_modules
+npm install
+./build.sh
 ```
 
-3. Cache Not Working
+3. Container not loading
 
-```bash
-# Check Nginx logs:
-docker-compose logs nginx
+- Check Docker containers: `docker-compose ps`
+- Check logs: `docker-compose logs`
+- Verify port 8080 is available
 
-# Verify cache directory exists:
-docker-compose exec nginx ls /tmp/nginx_cache
-```
+### Verification Steps
 
-### Health Checks
+1. Check dependency loading:
 
-The environment includes a health check endpoint:
+- Open browser DevTools
+- Look for console messages showing dependency sources
+- Verify load times in UI
 
-```bash
-curl http://localhost:8080/health
-```
+2. Verify MUI versions:
+
+- Each MFE should show its version
+- Container should show v5.13.7
+- Check dependency source (container/local)
+
+3. Monitor performance:
+
+- Check Network tab for module loading
+- Review console for timing information
+- Verify load times in UI
+
+## Scripts Reference
+
+### setup.sh
+
+- Sets up basic infrastructure
+- Creates directory structure
+- Configures Nginx
+
+### update-mfes.sh
+
+- Updates MFE configurations
+- Adds MUI versions
+- Configures monitoring
+
+### build.sh
+
+- Builds all applications
+- Starts Docker containers
+- Serves application
+
+### cleanup.sh
+
+- Stops containers
+- Removes build artifacts
+- Cleans node_modules
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new features
-4. Submit a pull request
+1. Create feature branch
+2. Make changes
+3. Test thoroughly
+4. Submit pull request
 
 ## License
 
-MIT License - feel free to modify and reuse for your own projects.
-
-## Support
-
-For issues and questions:
-
-1. Check the troubleshooting section
-2. Submit an issue on the repository
-3. Review Nginx caching documentation
+MIT License - See LICENSE file for details

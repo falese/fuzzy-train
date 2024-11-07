@@ -19,10 +19,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [
-              '@babel/preset-env',
-              ['@babel/preset-react', { "runtime": "automatic" }]
-            ],
+            presets: ['@babel/preset-env', ['@babel/preset-react', { "runtime": "automatic" }]],
           },
         },
       },
@@ -37,13 +34,35 @@ module.exports = {
         mfe3: 'mfe3@/mfe3/remoteEntry.js',
       },
       shared: {
-        react: { 
-          singleton: true, 
+        '@mui/material': { 
+          singleton: false,
+          requiredVersion: '5.13.7',
+          eager: true,
+          shareScope: 'default'
+        },
+        '@mui/system': { 
+          singleton: false,
+          requiredVersion: '5.13.7',
+          eager: true,
+          shareScope: 'default'
+        },
+        '@emotion/react': { 
+          singleton: true,
+          eager: true,
+          shareScope: 'default'
+        },
+        '@emotion/styled': { 
+          singleton: true,
+          eager: true,
+          shareScope: 'default'
+        },
+        'react': { 
+          singleton: true,
           requiredVersion: '^18.2.0',
           eager: true
         },
         'react-dom': { 
-          singleton: true, 
+          singleton: true,
           requiredVersion: '^18.2.0',
           eager: true
         }
